@@ -23,16 +23,15 @@ function createImage(url) {
   });
 }
 
-/* Crop (+ filter) to a JPEG blob, capped at 1600px wide to keep it well under
- * the backend's 4MB limit. */
-async function getCroppedBlob(src, area, filterCss) {
+/* Crop (+ filter) to a compact JPEG. Capped by `maxSize` (longer edge) and
+ * q0.82 so images stay small (fast to load) — a web photo lands ~60–150KB. */
+async function getCroppedBlob(src, area, filterCss, maxSize = 1280) {
   const image = await createImage(src);
-  const MAX = 1600;
   let w = area.width;
   let h = area.height;
-  if (w > MAX) {
-    const s = MAX / w;
-    w = MAX;
+  if (w > maxSize) {
+    const s = maxSize / w;
+    w = maxSize;
     h = h * s;
   }
   const canvas = document.createElement("canvas");
@@ -46,11 +45,11 @@ async function getCroppedBlob(src, area, filterCss) {
     0, 0, canvas.width, canvas.height
   );
   return await new Promise((resolve) =>
-    canvas.toBlob((b) => resolve(b), "image/jpeg", 0.9)
+    canvas.toBlob((b) => resolve(b), "image/jpeg", 0.82)
   );
 }
 
-export function ImageEditor({ src, aspect = 1, rounded, busy, onCancel, onApply }) {
+export function ImageEditor({ src, aspect = 1, rounded, busy, maxSize = 1280, onCancel, onApply }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [filter, setFilter] = useState("original");
@@ -65,7 +64,7 @@ export function ImageEditor({ src, aspect = 1, rounded, busy, onCancel, onApply 
     if (!area) return;
     setWorking(true);
     try {
-      const blob = await getCroppedBlob(src, area, filterCss);
+      const blob = await getCroppedBlob(src, area, filterCss, maxSize);
       if (blob) await onApply(blob);
     } finally {
       setWorking(false);

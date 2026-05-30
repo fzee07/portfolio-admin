@@ -202,18 +202,36 @@ export function ErrorBanner({ children }) {
 /* Upload an image to the backend (stored in MongoDB); value is the served path
  * "/api/images/:id". On file-pick it opens a crop/zoom/filter editor, then
  * uploads the baked result. Shows a live preview + Upload/Replace/Remove. */
-export function ImageUpload({ value, onChange, rounded, aspect = 1 }) {
+export function ImageUpload({ value, onChange, rounded, aspect = 1, maxSize = 1280, raw = false }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
   const [editSrc, setEditSrc] = useState(null);
   const src = value ? (/^https?:\/\//.test(value) ? value : `${api.base}${value}`) : null;
+
+  const uploadFile = async (file) => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await api.uploadImage(file);
+      onChange(res.url);
+      return true;
+    } catch (ex) {
+      setErr(ex.message || "Upload failed");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const pickFile = (e) => {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow re-picking the same file
     if (!file) return;
     setErr(null);
-    setEditSrc(URL.createObjectURL(file));
+    // raw mode (icons/logos): keep the original file — preserves transparency,
+    // SVG, and quality. Everything else goes through the crop/zoom/filter editor.
+    if (raw) uploadFile(file);
+    else setEditSrc(URL.createObjectURL(file));
   };
 
   const closeEditor = () => {
@@ -222,18 +240,8 @@ export function ImageUpload({ value, onChange, rounded, aspect = 1 }) {
   };
 
   const handleApply = async (blob) => {
-    setBusy(true);
-    setErr(null);
-    try {
-      const file = new File([blob], "image.jpg", { type: blob.type || "image/jpeg" });
-      const res = await api.uploadImage(file);
-      onChange(res.url);
-      closeEditor();
-    } catch (ex) {
-      setErr(ex.message || "Upload failed");
-    } finally {
-      setBusy(false);
-    }
+    const file = new File([blob], "image.jpg", { type: blob.type || "image/jpeg" });
+    if (await uploadFile(file)) closeEditor();
   };
 
   return (
@@ -285,6 +293,7 @@ export function ImageUpload({ value, onChange, rounded, aspect = 1 }) {
           aspect={aspect}
           rounded={rounded}
           busy={busy}
+          maxSize={maxSize}
           onCancel={closeEditor}
           onApply={handleApply}
         />

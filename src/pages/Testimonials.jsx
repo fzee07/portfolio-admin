@@ -26,7 +26,7 @@ export default function Testimonials() {
             <Field label="LinkedIn URL"><TextInput value={d.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} /></Field>
           </div>
           <Field label="Profile image" hint="Uploaded to your database (max 4MB).">
-            <ImageUpload value={d.profileImage} onChange={(v) => set("profileImage", v)} rounded />
+            <ImageUpload value={d.profileImage} onChange={(v) => set("profileImage", v)} rounded maxSize={640} />
           </Field>
           <Field label="Quote"><TextArea rows={6} value={d.quote} onChange={(v) => set("quote", v)} /></Field>
         </>

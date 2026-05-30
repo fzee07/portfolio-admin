@@ -4,6 +4,7 @@ import { Field, TextInput, TextArea, Panel, StringList, Repeater, SaveBar, Error
 const FALLBACK = {
   name: "", title: "", tagline: "", bio: "", shortBio: "", image: "",
   stats: [], socialLinks: { linkedin: "", github: "", email: "", phone: "" }, highlights: [],
+  customLinks: [],
 };
 
 export default function Profile() {
@@ -35,7 +36,7 @@ export default function Profile() {
 
       <Panel title="Hero photo">
         <Field label="Photo" hint="Your hero avatar (max 4MB). Uploaded to your database; replaces the default image.">
-          <ImageUpload value={d.image} onChange={(v) => r.setField("image", v)} rounded />
+          <ImageUpload value={d.image} onChange={(v) => r.setField("image", v)} rounded maxSize={800} />
         </Field>
       </Panel>
 
@@ -62,6 +63,43 @@ export default function Profile() {
           <Field label="Email"><TextInput value={d.socialLinks?.email} onChange={(v) => setSocial("email", v)} /></Field>
           <Field label="Phone"><TextInput value={d.socialLinks?.phone} onChange={(v) => setSocial("phone", v)} /></Field>
         </div>
+      </Panel>
+
+      <Panel title="More links">
+        <p className="hint" style={{ marginTop: 0, marginBottom: 12 }}>
+          Extra links shown in the hero (Medium, X, Dribbble…). Type an icon name
+          (twitter, youtube, instagram, globe, dribbble…) — or upload an icon image
+          if there's no built-in match.
+        </p>
+        <Repeater
+          items={d.customLinks || []}
+          onChange={(v) => r.setField("customLinks", v)}
+          blank={() => ({ label: "", url: "", icon: "" })}
+          titleOf={(l) => l.label || "New link"}
+          addLabel="+ Add link"
+          render={(l, set) => (
+            <>
+              <div className="grid-2">
+                <Field label="Label"><TextInput value={l.label} onChange={(v) => set({ ...l, label: v })} /></Field>
+                <Field label="URL"><TextInput value={l.url} onChange={(v) => set({ ...l, url: v })} /></Field>
+              </div>
+              <Field label="Icon name" hint="e.g. twitter, youtube, instagram, globe, dribbble. Leave blank if uploading an image.">
+                <TextInput
+                  value={(l.icon || "").startsWith("/api/images") ? "" : l.icon}
+                  onChange={(v) => set({ ...l, icon: v })}
+                />
+              </Field>
+              <Field label="…or upload an icon image" hint="Used when there's no built-in icon (e.g. Medium). Kept full-quality, transparency preserved.">
+                <ImageUpload
+                  value={(l.icon || "").startsWith("/api/images") ? l.icon : ""}
+                  onChange={(v) => set({ ...l, icon: v })}
+                  rounded
+                  raw
+                />
+              </Field>
+            </>
+          )}
+        />
       </Panel>
 
       <Panel title="Highlights">
