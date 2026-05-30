@@ -1,8 +1,8 @@
 import { useSingleton } from "../lib/useResource";
-import { Field, TextInput, TextArea, Panel, StringList, Repeater, SaveBar, ErrorBanner } from "../components/ui";
+import { Field, TextInput, TextArea, Panel, StringList, Repeater, SaveBar, ErrorBanner, ImageUpload } from "../components/ui";
 
 const FALLBACK = {
-  name: "", title: "", tagline: "", bio: "", shortBio: "",
+  name: "", title: "", tagline: "", bio: "", shortBio: "", image: "",
   stats: [], socialLinks: { linkedin: "", github: "", email: "", phone: "" }, highlights: [],
 };
 
@@ -31,6 +31,12 @@ export default function Profile() {
         <Field label="Tagline"><TextInput value={d.tagline} onChange={(v) => r.setField("tagline", v)} /></Field>
         <Field label="Bio"><TextArea rows={5} value={d.bio} onChange={(v) => r.setField("bio", v)} /></Field>
         <Field label="Short bio"><TextArea rows={3} value={d.shortBio} onChange={(v) => r.setField("shortBio", v)} /></Field>
+      </Panel>
+
+      <Panel title="Hero photo">
+        <Field label="Photo" hint="Your hero avatar (max 4MB). Uploaded to your database; replaces the default image.">
+          <ImageUpload value={d.image} onChange={(v) => r.setField("image", v)} rounded />
+        </Field>
       </Panel>
 
       <Panel title="Hero stats">

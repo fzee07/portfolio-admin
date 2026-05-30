@@ -1,5 +1,5 @@
 import CollectionEditor from "../components/CollectionEditor";
-import { Field, TextInput, TextArea } from "../components/ui";
+import { Field, TextInput, TextArea, ImageUpload } from "../components/ui";
 
 const blank = () => ({
   name: "", designation: "", company: "", profileImage: "", linkedinUrl: "",
@@ -25,7 +25,9 @@ export default function Testimonials() {
             <Field label="Date"><TextInput value={d.date} onChange={(v) => set("date", v)} /></Field>
             <Field label="LinkedIn URL"><TextInput value={d.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} /></Field>
           </div>
-          <Field label="Profile image URL"><TextInput value={d.profileImage} onChange={(v) => set("profileImage", v)} /></Field>
+          <Field label="Profile image" hint="Uploaded to your database (max 4MB).">
+            <ImageUpload value={d.profileImage} onChange={(v) => set("profileImage", v)} rounded />
+          </Field>
           <Field label="Quote"><TextArea rows={6} value={d.quote} onChange={(v) => set("quote", v)} /></Field>
         </>
       )}

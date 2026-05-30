@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { api } from "../lib/api";
+import { ImageEditor } from "./ImageEditor";
 
 export function Field({ label, hint, children }) {
   return (
@@ -195,4 +197,98 @@ export function SaveBar({ dirty, saving, onSave, onReset, extra }) {
 export function ErrorBanner({ children }) {
   if (!children) return null;
   return <div className="field-err">⚠ {children}</div>;
+}
+
+/* Upload an image to the backend (stored in MongoDB); value is the served path
+ * "/api/images/:id". On file-pick it opens a crop/zoom/filter editor, then
+ * uploads the baked result. Shows a live preview + Upload/Replace/Remove. */
+export function ImageUpload({ value, onChange, rounded, aspect = 1 }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [editSrc, setEditSrc] = useState(null);
+  const src = value ? (/^https?:\/\//.test(value) ? value : `${api.base}${value}`) : null;
+
+  const pickFile = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (!file) return;
+    setErr(null);
+    setEditSrc(URL.createObjectURL(file));
+  };
+
+  const closeEditor = () => {
+    if (editSrc) URL.revokeObjectURL(editSrc);
+    setEditSrc(null);
+  };
+
+  const handleApply = async (blob) => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const file = new File([blob], "image.jpg", { type: blob.type || "image/jpeg" });
+      const res = await api.uploadImage(file);
+      onChange(res.url);
+      closeEditor();
+    } catch (ex) {
+      setErr(ex.message || "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: rounded ? "9999px" : 12,
+            overflow: "hidden",
+            background: "#f5f5f5",
+            border: "1px solid #e4e4e7",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {src ? (
+            <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <span style={{ fontSize: 11, color: "#a1a1aa" }}>No image</span>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <label className="btn ghost sm" style={{ cursor: busy ? "default" : "pointer" }}>
+            {busy ? "Uploading…" : value ? "Replace" : "Upload"}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={pickFile}
+              disabled={busy}
+              style={{ display: "none" }}
+            />
+          </label>
+          {value && !busy && (
+            <button type="button" className="btn ghost sm" onClick={() => onChange("")}>
+              Remove
+            </button>
+          )}
+        </div>
+      </div>
+      {err && <div className="field-err" style={{ marginTop: 8 }}>⚠ {err}</div>}
+
+      {editSrc && (
+        <ImageEditor
+          src={editSrc}
+          aspect={aspect}
+          rounded={rounded}
+          busy={busy}
+          onCancel={closeEditor}
+          onApply={handleApply}
+        />
+      )}
+    </div>
+  );
 }

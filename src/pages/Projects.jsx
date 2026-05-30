@@ -1,6 +1,6 @@
 import { useSingleton } from "../lib/useResource";
 import CollectionEditor from "../components/CollectionEditor";
-import { Field, TextInput, TextArea, Toggle, Panel, StringList, KeyValueEditor, SaveBar, ErrorBanner } from "../components/ui";
+import { Field, TextInput, TextArea, Toggle, Panel, StringList, KeyValueEditor, SaveBar, ErrorBanner, ImageUpload } from "../components/ui";
 
 const META_FALLBACK = { totalYears: "", experienceSummary: "", projectCategories: [] };
 
@@ -42,8 +42,10 @@ export default function Projects() {
             <Field label="Title"><TextInput value={d.title} onChange={(v) => set("title", v)} /></Field>
             <Field label="Short description"><TextInput value={d.shortDescription} onChange={(v) => set("shortDescription", v)} /></Field>
             <Field label="Description"><TextArea rows={4} value={d.description} onChange={(v) => set("description", v)} /></Field>
+            <Field label="Project image" hint="Crop/zoom/filter on upload. Stored in your database (max 4MB).">
+              <ImageUpload value={d.image} onChange={(v) => set("image", v)} aspect={16 / 9} />
+            </Field>
             <div className="grid-2">
-              <Field label="Image path" hint="e.g. /projects/my-project.png"><TextInput value={d.image} onChange={(v) => set("image", v)} /></Field>
               <Field label="Category"><TextInput value={d.category} onChange={(v) => set("category", v)} /></Field>
               <Field label="Duration"><TextInput value={d.duration} onChange={(v) => set("duration", v)} /></Field>
               <Field label="Role"><TextInput value={d.role} onChange={(v) => set("role", v)} /></Field>
