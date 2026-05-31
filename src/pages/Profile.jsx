@@ -41,12 +41,17 @@ export default function Profile() {
       </Panel>
 
       <Panel title="Hero stats">
+        <p className="hint" style={{ marginTop: 0, marginBottom: 12 }}>
+          Up to 8 stat cards. They auto-arrange and stay centered on the site —
+          5 sit in one row; 6 as 4+2; 7 as 4+3; 8 as 4+4.
+        </p>
         <Repeater
           items={d.stats || []}
           onChange={(v) => r.setField("stats", v)}
           blank={() => ({ label: "", value: "" })}
           titleOf={(s) => s.label || "New stat"}
           addLabel="+ Add stat"
+          max={8}
           render={(s, set) => (
             <div className="grid-2">
               <Field label="Label"><TextInput value={s.label} onChange={(v) => set({ ...s, label: v })} /></Field>

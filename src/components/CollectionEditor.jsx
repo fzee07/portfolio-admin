@@ -71,6 +71,15 @@ export default function CollectionEditor({ name, intro, titleOf, subOf, tagOf, b
 
   const list = col.items;
 
+  // Reorder the master list (persists immediately — the public site renders by `order`).
+  const move = async (index, dir) => {
+    const j = index + dir;
+    if (j < 0 || j >= list.length) return;
+    const ids = list.map((it) => it.id);
+    [ids[index], ids[j]] = [ids[j], ids[index]];
+    await col.reorder(ids);
+  };
+
   return (
     <div>
       <div className="page-intro">
@@ -92,7 +101,7 @@ export default function CollectionEditor({ name, intro, titleOf, subOf, tagOf, b
             <div className="col-list">
               {col.loading && <div className="loading">Loading…</div>}
               {!col.loading && list.length === 0 && <div className="empty">Nothing here yet. Create one →</div>}
-              {list.map((item) => (
+              {list.map((item, i) => (
                 <div key={item.id}
                   className={`col-item ${selectedId === item.id ? "active" : ""}`}
                   onClick={() => pick(item)}>
@@ -100,7 +109,17 @@ export default function CollectionEditor({ name, intro, titleOf, subOf, tagOf, b
                     <div className="ci-title" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{titleOf(item)}</div>
                     {subOf && <div className="ci-sub">{subOf(item)}</div>}
                   </div>
-                  {tagOf && tagOf(item) && <span className="ci-tag">{tagOf(item)}</span>}
+                  <div className="ci-right">
+                    {tagOf && tagOf(item) && <span className="ci-tag">{tagOf(item)}</span>}
+                    <span className="ci-move">
+                      <button type="button" className="mv" title="Move up"
+                        disabled={i === 0 || col.busy}
+                        onClick={(e) => { e.stopPropagation(); move(i, -1); }}>↑</button>
+                      <button type="button" className="mv" title="Move down"
+                        disabled={i === list.length - 1 || col.busy}
+                        onClick={(e) => { e.stopPropagation(); move(i, 1); }}>↓</button>
+                    </span>
+                  </div>
                 </div>
               ))}
               {isNew && (

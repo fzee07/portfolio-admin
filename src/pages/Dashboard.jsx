@@ -13,11 +13,16 @@ const SECTIONS = [
   { name: "testimonials", label: "Testimonials", to: "/testimonials", kind: "collection", hint: "Quotes" },
 ];
 
+const MB = 1024 * 1024;
+const toMB = (bytes) => (bytes / MB).toFixed(bytes < 10 * MB ? 1 : 0);
+
 export default function Dashboard() {
   const nav = useNavigate();
   const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [storage, setStorage] = useState(null);
+  const [storageErr, setStorageErr] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -39,6 +44,20 @@ export default function Dashboard() {
     return () => { alive = false; };
   }, []);
 
+  useEffect(() => {
+    let alive = true;
+    api.stats()
+      .then((s) => { if (alive) setStorage(s); })
+      .catch((e) => { if (alive) setStorageErr(e.message); });
+    return () => { alive = false; };
+  }, []);
+
+  // Storage usage — MongoDB Atlas M0 free tier = 512MB on-disk (data + indexes).
+  const used = storage?.used ?? 0;
+  const limit = storage?.limit ?? 512 * MB;
+  const pct = limit ? Math.min(100, (used / limit) * 100) : 0;
+  const barColor = pct < 75 ? "#16a34a" : pct < 90 ? "#d97706" : "#dc2626";
+
   return (
     <div>
       <div className="page-intro">
@@ -48,6 +67,44 @@ export default function Dashboard() {
       </div>
 
       {error && <div className="error-banner">{error}</div>}
+
+      {/* Database storage — live MongoDB usage against the 512MB free tier */}
+      <div className="panel storage-panel">
+        <div className="panel-head">
+          <h3>Database storage</h3>
+          <span className="eyebrow">MongoDB · free tier</span>
+        </div>
+        <div className="panel-body">
+          {storageErr ? (
+            <div className="storage-err">Couldn’t read storage stats — {storageErr}</div>
+          ) : (
+            <>
+              <div className="storage-row">
+                <div className="storage-amount">
+                  <span className="num">{storage ? toMB(used) : "—"}</span>
+                  <span className="unit">MB</span>
+                  <span className="of">of {toMB(limit)} MB used</span>
+                </div>
+                <div className="storage-pct" style={{ color: barColor }}>
+                  {storage ? `${pct.toFixed(1)}%` : ""}
+                </div>
+              </div>
+              <div className="storage-bar">
+                <div
+                  className="storage-fill"
+                  style={{ width: `${storage ? Math.max(pct, 1.5) : 0}%`, background: barColor }}
+                />
+              </div>
+              <div className="storage-foot">
+                <span>
+                  {storage ? `${(storage.objects || 0).toLocaleString()} documents · ${storage.collections || 0} collections` : "Reading…"}
+                </span>
+                <span>{storage ? `${toMB(Math.max(limit - used, 0))} MB free` : ""}</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       <div className="stat-grid" style={{ marginBottom: 26 }}>
         {SECTIONS.filter((s) => s.kind === "collection").map((s) => (

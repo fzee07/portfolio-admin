@@ -71,6 +71,9 @@ export const api = {
   login: (username, password) => post("/api/admin/login", { username, password }),
   me: () => get("/api/admin/me"),
 
+  // database storage usage → { used, limit, objects, collections, … } (bytes)
+  stats: () => get("/api/admin/stats"),
+
   // image upload (multipart → MongoDB) → { id, url, contentType, size }
   uploadImage: (file) => upload("/api/admin/images", file),
 

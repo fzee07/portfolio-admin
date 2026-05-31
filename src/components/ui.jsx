@@ -54,7 +54,7 @@ export function Toggle({ checked, onChange, label }) {
     <label className="toggle">
       <input type="checkbox" checked={!!checked} onChange={(e) => onChange(e.target.checked)} />
       <span className="track"><span className="knob" /></span>
-      {label && <span style={{ fontSize: 13 }}>{label}</span>}
+      {label && <span className="toggle-label">{label}</span>}
     </label>
   );
 }
@@ -140,7 +140,7 @@ export function KeyValueEditor({ value = {}, onChange, keyLabel = "key", valLabe
 }
 
 /* Editable list of structured objects; caller renders each item's fields. */
-export function Repeater({ items = [], onChange, render, titleOf, addLabel = "+ Add item", blank }) {
+export function Repeater({ items = [], onChange, render, titleOf, addLabel = "+ Add item", blank, max }) {
   const [open, setOpen] = useState(() => items.map(() => true));
   const set = (i, next) => onChange(items.map((x, idx) => (idx === i ? next : x)));
   const add = () => { onChange([...items, blank ? blank() : {}]); setOpen((o) => [...o, true]); };
@@ -170,7 +170,11 @@ export function Repeater({ items = [], onChange, render, titleOf, addLabel = "+ 
           {open[i] && <div className="ri-body">{render(item, (next) => set(i, next), i)}</div>}
         </div>
       ))}
-      <button className="btn ghost sm" type="button" onClick={add}>{addLabel}</button>
+      {max != null && items.length >= max ? (
+        <div className="hint">Maximum of {max} reached.</div>
+      ) : (
+        <button className="btn ghost sm" type="button" onClick={add}>{addLabel}</button>
+      )}
     </div>
   );
 }

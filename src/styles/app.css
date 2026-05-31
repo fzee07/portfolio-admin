@@ -183,7 +183,10 @@ a { color: inherit; }
 
 /* ---------------- Form controls ---------------- */
 .field { margin-bottom: 16px; }
-.field > label {
+/* The field's own caption label only — :not(.toggle) so it never restyles a
+   Toggle placed directly inside a Field (a Toggle is itself a <label>, and
+   this rule's higher specificity was forcing it to block + uppercase). */
+.field > label:not(.toggle) {
   display: block;
   font-family: var(--mono);
   font-size: 11px;
@@ -212,17 +215,20 @@ textarea { resize: vertical; min-height: 84px; line-height: 1.55; }
 .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
 
 /* toggle */
-.toggle { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
-.toggle input { display: none; }
+.toggle { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; font-family: var(--ui); }
+.toggle input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
 .toggle .track {
-  width: 40px; height: 22px; border: 1px solid var(--ink); position: relative; background: var(--surface);
+  width: 40px; height: 22px; border: 1px solid var(--ink); border-radius: 999px;
+  position: relative; background: var(--surface); flex: none; transition: background 0.14s ease;
 }
 .toggle .knob {
-  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: var(--ink); transition: left 0.14s ease;
+  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px;
+  background: var(--ink); transition: left 0.14s ease, background 0.14s ease;
 }
-.toggle input:checked + .track .knob { left: 20px; }
 .toggle input:checked + .track { background: var(--ink); }
-.toggle input:checked + .track .knob { background: #fff; }
+.toggle input:checked + .track .knob { left: 20px; background: #fff; }
+.toggle input:focus-visible + .track { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--ink); }
+.toggle-label { font-size: 13px; color: var(--ink-2); }
 
 /* ---------------- Buttons ---------------- */
 .btn {
@@ -293,6 +299,19 @@ textarea { resize: vertical; min-height: 84px; line-height: 1.55; }
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
   border: 1px solid currentColor; padding: 2px 7px; opacity: 0.7;
 }
+.col-item .ci-right { display: flex; align-items: center; gap: 8px; flex: none; }
+.ci-move { display: inline-flex; gap: 4px; }
+.ci-move .mv {
+  width: 24px; height: 24px; padding: 0; flex: none;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+  border-radius: var(--radius); cursor: pointer; font-size: 12px; line-height: 1;
+  display: grid; place-items: center;
+}
+.ci-move .mv:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+.ci-move .mv:disabled { opacity: 0.3; cursor: default; }
+/* keep controls legible on the inverted (active) row */
+.col-item.active .ci-move .mv { background: transparent; border-color: rgba(255,255,255,0.45); color: #fff; }
+.col-item.active .ci-move .mv:hover:not(:disabled) { border-color: #fff; background: rgba(255,255,255,0.14); }
 
 /* ---------------- Misc ---------------- */
 .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--ink); padding: 3px 8px; }
@@ -300,6 +319,29 @@ textarea { resize: vertical; min-height: 84px; line-height: 1.55; }
 .stat-card { border: 1px solid var(--line-strong); background: var(--surface); padding: 18px; }
 .stat-card .v { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
 .stat-card .l { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+/* ---------------- Storage usage widget (dashboard) ---------------- */
+.storage-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+.storage-amount { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; min-width: 0; }
+.storage-amount .num { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.storage-amount .unit { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.storage-amount .of { font-size: 13px; color: var(--muted); }
+.storage-pct { font-family: var(--mono); font-size: 22px; font-weight: 600; letter-spacing: -0.01em; flex: none; }
+.storage-bar {
+  height: 14px; border: 1px solid var(--line-strong); border-radius: 999px;
+  background: var(--hover); overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.storage-fill {
+  height: 100%; min-width: 0; border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: width 0.6s cubic-bezier(0.25, 0.1, 0.5, 1), background 0.3s ease;
+}
+.storage-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 11px; font-family: var(--mono); font-size: 11px; color: var(--muted);
+}
+.storage-err { font-size: 13px; color: var(--muted); }
 
 .empty { text-align: center; color: var(--muted); padding: 40px 0; font-family: var(--mono); font-size: 12px; }
 .loading { color: var(--muted); font-family: var(--mono); font-size: 12px; padding: 24px; }
