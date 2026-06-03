@@ -433,9 +433,12 @@ textarea { resize: vertical; min-height: 84px; line-height: 1.55; }
   min-height: 280px;
   max-height: 620px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 18px 20px;
   outline: none;
+  max-width: 100%;
 }
+.rte-content.ProseMirror:focus { outline: none; }
 .rte-content:empty::before {
   content: attr(data-placeholder);
   color: var(--muted);
@@ -455,8 +458,65 @@ textarea { resize: vertical; min-height: 84px; line-height: 1.55; }
 .prose ul, .prose ol { margin: 0 0 1em; padding-left: 1.4em; }
 .prose li { margin: 0.3em 0; }
 .prose blockquote { margin: 1.2em 0; padding: 0.4em 1em; border-left: 3px solid var(--ink); color: var(--muted); font-style: italic; }
-.prose pre { background: #f4f4f2; border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 13px; }
+.prose pre { background: #f4f4f2; border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; max-width: 100%; white-space: pre-wrap; word-break: break-word; font-family: var(--mono); font-size: 13px; }
 .prose code { font-family: var(--mono); font-size: 0.9em; background: #f0f0ee; padding: 1px 5px; border-radius: 4px; }
 .prose pre code { background: none; padding: 0; }
 .prose img { max-width: 100%; height: auto; border-radius: 8px; margin: 1em 0; }
 .prose hr { border: none; border-top: 1px solid var(--line); margin: 2em 0; }
+
+/* ---------------- Tag input (chips + field) ---------------- */
+.taginput {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+  padding: 7px 8px; min-height: 40px; cursor: text;
+}
+.taginput:focus-within { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono); font-size: 12px; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 3px 4px 3px 9px;
+}
+.tag-x {
+  border: none; background: none; cursor: pointer; color: var(--muted);
+  font-size: 15px; line-height: 1; padding: 0 3px; border-radius: var(--radius);
+}
+.tag-x:hover { color: var(--ink); background: var(--hover); }
+.tag-field {
+  flex: 1; min-width: 120px; border: none; outline: none; background: transparent;
+  font-family: var(--ui); font-size: 14px; color: var(--ink); padding: 4px 2px;
+}
+.tag-field:focus { box-shadow: none; }
+
+/* ---------------- Publish-date field ---------------- */
+.date-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.date-input {
+  width: auto; font-family: var(--ui); font-size: 14px; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 9px 11px;
+}
+.date-readback { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+/* ---------------- Data table (per-post analytics) ---------------- */
+.table-scroll { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); }
+.data-table th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  font-weight: 500; color: var(--muted); text-align: left; white-space: nowrap;
+  padding: 11px 14px; border-bottom: 1px solid var(--line-strong);
+  cursor: pointer; user-select: none;
+}
+.data-table th:hover { color: var(--ink); }
+.data-table th.sorted { color: var(--ink); }
+.data-table th.ta-r { text-align: right; }
+.data-table th .th-arrow { font-size: 9px; margin-left: 5px; }
+.data-table td {
+  padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--ink-2); white-space: nowrap;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--hover); }
+.data-table td.ta-r { text-align: right; }
+.data-table td.mono { font-family: var(--mono); }
+.data-table td.td-title {
+  color: var(--ink); font-weight: 500; max-width: 280px; overflow: hidden; text-overflow: ellipsis;
+}

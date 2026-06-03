@@ -1,6 +1,7 @@
 import CollectionEditor from "../components/CollectionEditor";
 import { RichTextEditor } from "../components/RichTextEditor";
-import { Field, TextInput, TextArea, Panel, StringList, ImageUpload } from "../components/ui";
+import { Field, TextInput, TextArea, Panel, TagInput, ImageUpload } from "../components/ui";
+import { longDate, todayLocal } from "../lib/format";
 
 const SOURCES = [
   { v: "self", label: "My blog" },
@@ -26,12 +27,13 @@ const blank = () => ({
   publishedAt: "",
 });
 
-const fmtMs = (ms) => {
-  if (!ms) return "—";
-  const s = Math.round(ms / 1000);
-  if (s < 60) return `${s}s`;
-  const m = Math.floor(s / 60);
-  return `${m}m ${s % 60}s`;
+/* A published post whose publish date hasn't arrived yet is "scheduled".
+   Parse "YYYY-MM-DD" as a LOCAL date (matches the backend's isLive gate). */
+const isFuture = (publishedAt) => {
+  if (!publishedAt) return false;
+  const m = String(publishedAt).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(publishedAt);
+  return !isNaN(d.getTime()) && d.getTime() > Date.now();
 };
 
 function Segmented({ value, options, onChange }) {
@@ -64,12 +66,12 @@ export default function Posts() {
         const src = SOURCES.find((s) => s.v === p.source)?.label || p.source;
         return p.kind === "article" ? `Article · ${src}` : `Link · ${src}`;
       }}
-      tagOf={(p) => (p.status === "published" ? "live" : "draft")}
+      tagOf={(p) =>
+        p.status !== "published" ? "draft" : isFuture(p.publishedAt) ? "scheduled" : "live"
+      }
       blank={blank}
       renderForm={(d, set) => {
         const isArticle = (d.kind || "article") === "article";
-        const a = d.analytics || {};
-        const avg = a.readSessions ? a.readMsTotal / a.readSessions : 0;
         return (
           <>
             <Panel title="Type">
@@ -149,19 +151,24 @@ export default function Posts() {
                   />
                 </Field>
               </div>
-              <Field label="Tags"><StringList items={d.tags || []} onChange={(v) => set("tags", v)} placeholder="A tag…" /></Field>
-              <Field label="Publish date" hint="Optional. Auto-set when first published if left blank.">
-                <TextInput value={d.publishedAt} onChange={(v) => set("publishedAt", v)} placeholder="2026-06-02 or ISO date" />
+              <Field label="Tags" hint="Type a tag and press Enter (no “#” needed). Shown as #tag on the site.">
+                <TagInput value={d.tags || []} onChange={(v) => set("tags", v)} placeholder="Add a tag…" />
               </Field>
-            </Panel>
-
-            <Panel title="Engagement (read-only)">
-              <div className="stat-grid">
-                <div className="stat-card"><div className="v">{a.views || 0}</div><div className="l">Views</div></div>
-                {!isArticle && <div className="stat-card"><div className="v">{a.clicks || 0}</div><div className="l">Clicks</div></div>}
-                <div className="stat-card"><div className="v">{fmtMs(avg)}</div><div className="l">Avg read</div></div>
-                <div className="stat-card"><div className="v">{fmtMs(a.maxReadMs)}</div><div className="l">Longest read</div></div>
-              </div>
+              <Field label="Publish date" hint="Optional — auto-set to today when first published if left blank. Pick a future date to schedule (stays hidden until then).">
+                <div className="date-row">
+                  <input
+                    type="date"
+                    className="date-input"
+                    value={(d.publishedAt || "").slice(0, 10)}
+                    onChange={(e) => set("publishedAt", e.target.value)}
+                  />
+                  <button type="button" className="btn ghost sm" onClick={() => set("publishedAt", todayLocal())}>Today</button>
+                  {d.publishedAt && (
+                    <button type="button" className="btn ghost sm" onClick={() => set("publishedAt", "")}>Clear</button>
+                  )}
+                </div>
+                {d.publishedAt && <div className="date-readback">Shows as: <b>{longDate(d.publishedAt)}</b></div>}
+              </Field>
             </Panel>
           </>
         );

@@ -104,6 +104,52 @@ export function StringList({ items = [], onChange, placeholder = "Add value…" 
   );
 }
 
+/* Tag input — removable chips followed by a single field. Enter or comma commits
+ * the typed word as a chip (strips a leading "#", trims, ignores blanks + dupes)
+ * and keeps focus for the next tag. Backspace on an empty field removes the last
+ * chip. Stores plain words WITHOUT the "#". */
+export function TagInput({ value = [], onChange, placeholder = "Add a tag…" }) {
+  const [draft, setDraft] = useState("");
+  const tags = Array.isArray(value) ? value : [];
+
+  const commit = (raw) => {
+    const t = String(raw).trim().replace(/^#+/, "").trim();
+    setDraft("");
+    if (!t) return;
+    if (!tags.some((x) => x.toLowerCase() === t.toLowerCase())) onChange([...tags, t]);
+  };
+  const removeAt = (i) => onChange(tags.filter((_, idx) => idx !== i));
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      commit(draft);
+    } else if (e.key === "Backspace" && draft === "" && tags.length) {
+      e.preventDefault();
+      removeAt(tags.length - 1);
+    }
+  };
+
+  return (
+    <div className="taginput" onMouseDown={(e) => { if (e.target.classList.contains("taginput")) { e.preventDefault(); e.currentTarget.querySelector("input")?.focus(); } }}>
+      {tags.map((t, i) => (
+        <span className="tag-chip" key={`${t}-${i}`}>
+          {t}
+          <button type="button" className="tag-x" title="Remove" onClick={() => removeAt(i)}>×</button>
+        </span>
+      ))}
+      <input
+        className="tag-field"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={onKeyDown}
+        onBlur={() => commit(draft)}
+        placeholder={tags.length ? "" : placeholder}
+      />
+    </div>
+  );
+}
+
 /* Editable map of arbitrary key/value string pairs (metrics, links, stats…). */
 export function KeyValueEditor({ value = {}, onChange, keyLabel = "key", valLabel = "value" }) {
   // Maintain order as an array of [k, v] pairs.
