@@ -11,6 +11,8 @@ import Experience from "./pages/Experience";
 import Projects from "./pages/Projects";
 import Education from "./pages/Education";
 import Testimonials from "./pages/Testimonials";
+import Posts from "./pages/Posts";
+import Analytics from "./pages/Analytics";
 
 function Protected({ children }) {
   const { isAuthed, checking } = useAuth();
@@ -44,6 +46,8 @@ export default function App() {
             <Route path="/projects" element={page(<Projects />)} />
             <Route path="/education" element={page(<Education />)} />
             <Route path="/testimonials" element={page(<Testimonials />)} />
+            <Route path="/posts" element={page(<Posts />)} />
+            <Route path="/analytics" element={page(<Analytics />)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ToastProvider>

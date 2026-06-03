@@ -21,6 +21,13 @@ const NAV = [
       { to: "/testimonials", label: "Testimonials" },
     ],
   },
+  {
+    group: "Writing",
+    items: [
+      { to: "/posts", label: "Posts" },
+      { to: "/analytics", label: "Analytics" },
+    ],
+  },
 ];
 
 const TITLES = {
@@ -33,6 +40,8 @@ const TITLES = {
   "/projects": "Projects",
   "/education": "Education",
   "/testimonials": "Testimonials",
+  "/posts": "Posts",
+  "/analytics": "Analytics",
 };
 
 export default function Layout({ children }) {
